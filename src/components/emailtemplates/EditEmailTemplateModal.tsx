@@ -16,6 +16,7 @@ type EmailTemplate = {
   envelopeSender: string;
   subject: string;
   bodyEmail: string;
+  trackerImage: number;
 };
 
 export type EditEmailTemplateModalProps = {

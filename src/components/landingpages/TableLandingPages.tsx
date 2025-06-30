@@ -33,8 +33,10 @@ interface LandingPage{
   body: string;
   createdAt: string;
   createdBy: number;
+  createdByName: string;
   updatedAt: string;
   updatedBy: number;
+  updatedByName: string;
 }
 
 export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?: number, onReload?: () => void }){

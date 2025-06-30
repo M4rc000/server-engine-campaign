@@ -35,8 +35,10 @@ interface Group {
   memberCount: number; 
   createdAt: string; 
   createdBy: number; 
+  createdByName: string; 
   updatedAt: string; 
   updatedBy: number; 
+  updatedByName: string; 
   members?: Member[];
 }
 

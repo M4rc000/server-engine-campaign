@@ -82,7 +82,7 @@ const EditLandingPageModalForm = forwardRef<EditLandingPageModalFormRef, EditLan
           body: JSON.stringify({
             name: formData.name,
             body: formData.body,
-            createdBy: createdBy,
+            updatedBy: createdBy,
           }),
         });
         

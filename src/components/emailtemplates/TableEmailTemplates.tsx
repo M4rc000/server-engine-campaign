@@ -33,7 +33,13 @@ interface EmailTemplate{
   envelopeSender: string;
   subject: string;
   bodyEmail: string;
-  updated_at: string;
+  trackerImage: number;
+  createdAt: string;
+  createdBy: number;
+  createdByName: string;
+  updatedAt: string;
+  updatedBy: number;
+  updatedByName: string;
 }
 
 export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?: number, onReload?: () => void }){
@@ -87,7 +93,6 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
      if (!res.ok) throw new Error('Failed to fetch data');
 
      const result = await res.json();
-     console.log('Result: ', result);
      setData(result.Data || result.data || result);
      } catch (err) {
         console.log('Error: ', err);

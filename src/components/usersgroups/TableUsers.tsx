@@ -40,8 +40,10 @@ interface User {
   isActive: string;
   createdAt: string;
   createdBy: number;
+  createdByName: string;
   updatedAt: string;
   updatedBy: number;
+  updatedByName: string;
   lastLogin: Date;
 }
 
