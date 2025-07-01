@@ -1,4 +1,4 @@
-import { useState, useMemo, useDeferredValue, useRef, useEffect } from 'react';
+import { useState, useMemo, useDeferredValue, useRef, useEffect, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -27,16 +27,25 @@ import UpdateSendingProfilesModal from './UpdateSendingProfilesModal';
 import DeleteSendingProfilesModal from './DeleteSendingProfilesModal'
 import Swal from '../utils/AlertContainer';
 
-interface SendingProfiles {
-    id: number;
-    name: string;
-    senderAddress: string;
-    subject: string;
-    body: string;
-    lastModified: string;
-  }
+interface SendingProfile {
+  id: number;
+  name: string;
+	interfaceType: string;
+	smtpFrom     : string;
+	username     : string;
+	password     : string;
+	host         : string;
+	CreatedAt    : string;
+	CreatedBy    : number;
+	CreatedByName    : string;
+	UpdatedAt    : string;
+	UpdatedBy    : number; 
+	UpdatedByName    : string; 
+  senderAddress: string;
+	EmailHeaders : string;
+}
 
-export default function TableSendingProfiles() {
+export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?: number, onReload?: () => void }){
   const [search, setSearch] = useState('');
   const { isExpanded } = useSidebar();
   const [pagination, setPagination] = useState({
@@ -48,17 +57,21 @@ export default function TableSendingProfiles() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [activeModal, setActiveModal] = useState<'detail' | 'edit' | 'delete' | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [data, setData] = useState<SendingProfiles[]>([]);
+  const [data, setData] = useState<SendingProfile[]>([]);
+  const [selectedSendingProfile, setSelectedSendingProfile] = useState<SendingProfile | null>(null);
   
-  const onShowSendingProfiles = () => {
+  const onShowSendingProfiles = (sendingProfile: SendingProfile) => {
+    setSelectedSendingProfile(sendingProfile);
     setActiveModal('detail');
   };
 
-  const onUpdateSendingProfiles = () => {
+  const onUpdateSendingProfiles = (sendingProfile: SendingProfile) => {
+    setSelectedSendingProfile(sendingProfile);
     setActiveModal('edit');
   }
 
-  const onDeleteSendingProfiles = () => {
+  const onDeleteSendingProfiles = (sendingProfile: SendingProfile) => {
+    setSelectedSendingProfile(sendingProfile);
     setActiveModal('delete');
   }
 
@@ -78,39 +91,58 @@ export default function TableSendingProfiles() {
   }, []);
 
   // FETCH DATA
-  useEffect(()=>{
-    const API_URL = import.meta.env.VITE_API_URL;
-    const token = localStorage.getItem("token");
-    const fetchData = async () => {
+  const API_URL = import.meta.env.VITE_API_URL;
+  const token = localStorage.getItem("token");
+  const fetchData = useCallback(async (showLoader = true) => {
+    if (showLoader) {
       setIsLoading(true);
-      try {
-        const res = await fetch(`${API_URL}/sending-profile/all`, {
-          credentials: 'include',
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        });
-  
-        if (!res.ok) throw new Error('Failed to fetch data');
-  
-        const result = await res.json();
-        setData(result.Data || result.data || result);
-      } catch (err) {
-        console.log('Error: ', err);
-        Swal.fire({
-          text: 'Failed to load email template data',
-          duration: 2000,
-          icon: "error"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    }; 
-    fetchData();
-  }, [])
+    }
+    try {
+    const res = await fetch(`${API_URL}/sending-profile/all`, {
+    credentials: 'include',
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-  const columns = useMemo<ColumnDef<SendingProfiles>[]>(
+    if (!res.ok) throw new Error('Failed to fetch data');
+
+    const result = await res.json();
+    setData(result.Data || result.data || result);
+    } catch (err) {
+      console.log('Error: ', err);
+      Swal.fire({
+        text: 'Failed to load sending profile data',
+        duration: 2000,
+        icon: "error"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [API_URL, token]); 
+
+  useEffect(() => {
+    fetchData(true);
+
+    const intervalId = setInterval(() => {
+      fetchData(false);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
+  }, [reloadTrigger, fetchData]);
+
+  useEffect(() => {
+    fetchData();
+  }, [reloadTrigger, fetchData]);
+
+  useEffect(() => {
+  if (reloadTrigger && reloadTrigger > 0) {
+    fetchData();
+  }
+  }, [reloadTrigger, fetchData]);
+
+  const columns = useMemo<ColumnDef<SendingProfile>[]>(
     () => [
       {
         accessorKey: 'id',
@@ -119,11 +151,19 @@ export default function TableSendingProfiles() {
       },
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: 'Profile Name',
       },
       {
-        accessorKey: 'subject',
-        header: 'Subject',
+        accessorKey: 'interfaceType',
+        header: 'Interface Type',
+      },
+      {
+        accessorKey: 'smtpFrom',
+        header: 'SMTP From',
+      },
+      {
+        accessorKey: 'host',
+        header: 'Host',
       },
       {
         accessorKey: 'createdAt',
@@ -172,15 +212,15 @@ export default function TableSendingProfiles() {
         id: 'actions',
         accessorKey: 'actions',
         header: 'Action',
-        cell: () => (
+        cell: (row) => (
           <div className="flex items-center justify-center space-x-2">
-            <Button size="xs" variant="info" onClick={onShowSendingProfiles}>
+            <Button size="xs" variant="info" onClick={() => onShowSendingProfiles(row.row.original)}>
               <FaCircleInfo />
             </Button>
-            <Button size="xs" variant="warning" onClick={onUpdateSendingProfiles}>
+            <Button size="xs" variant="warning" onClick={() => onUpdateSendingProfiles(row.row.original)}>
               <BiSolidEditAlt />
             </Button>
-            <Button size="xs" variant="danger" onClick={onDeleteSendingProfiles}>
+            <Button size="xs" variant="danger" onClick={() => onDeleteSendingProfiles(row.row.original)}>
               <FaRegTrashAlt />
             </Button>
           </div>
@@ -437,17 +477,34 @@ export default function TableSendingProfiles() {
       {/* MODALS */}
       <ShowSendingProfilesModal
         isOpen={activeModal === 'detail'}
-        onClose={() => setActiveModal(null)}
-      />
+        onClose={() => {
+          setActiveModal(null);
+          setSelectedSendingProfile(null);
+        }}
+        sendingProfile={selectedSendingProfile}
+        />
 
       <UpdateSendingProfilesModal
+        onSendingProfileUpdated={() => { fetchData(); }}
         isOpen={activeModal === 'edit'}
-        onClose={() => setActiveModal(null)}
-      />
+        sendingProfile={selectedSendingProfile!}
+        onClose={() => {
+          setActiveModal(null);
+          setSelectedSendingProfile(null);
+        }}
+        />
 
       <DeleteSendingProfilesModal
         isOpen={activeModal === 'delete'}
-        onClose={() => setActiveModal(null)}
+        onSendingProfileDeleted={() => {
+          fetchData();
+          if (onReload) onReload();
+        }}
+        sendingProfile={selectedSendingProfile}
+        onClose={() => {
+          setActiveModal(null);
+          setSelectedSendingProfile(null);
+        }}
       />
     </div>
   );
