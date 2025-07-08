@@ -1,5 +1,4 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
-import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import {
@@ -14,7 +13,23 @@ import Swal from "../utils/AlertContainer";
 import { GrFormPrevious } from "react-icons/gr";
 import { MdOutlineNavigateNext } from "react-icons/md";
 import LabelWithTooltip from "../ui/tooltip/Tooltip";
+import SendTestEmailModal from "./SendTestEmailModal";
 
+interface TestRecipient {
+  name: string;
+  email: string;
+  position: string;
+}
+
+type SendingProfile = {
+  id: number;
+  name: string;
+  interfaceType: string;
+  smtpFrom: string;
+  host: string;
+  username: string;
+  password: string;
+}
 
 export type NewSendingProfileModalFormRef = {
   submitSendingProfile: () => Promise<{
@@ -29,7 +44,7 @@ export type NewSendingProfileModalFormRef = {
 };
 
 const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
-  (props, ref) => { 
+  (_, ref) => { 
     type EmailHeader = { header: string; value: string };
 
     // State untuk input form
@@ -45,6 +60,12 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
     const [newValue, setNewValue] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [entriesPerPage, setEntriesPerPage] = useState(10);
+    const [errors, setErrors] = useState<Partial<SendingProfile>>({});
+    
+
+    // State untuk modal email tes
+    const [showTestEmailModal, setShowTestEmailModal] = useState(false);
+    const [isSendingTestEmail, setIsSendingTestEmail] = useState(false);
 
     const addEmailHeader = () => {
       if (newHeader.trim() && newValue.trim()) {
@@ -71,21 +92,177 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
     // Calculate pagination
     const displayedHeaders = filteredHeaders.slice(0, entriesPerPage);
 
+    // VALIDATION FUNCTION
+    const validateForm = (): boolean => {
+      const newErrors: Partial<SendingProfile> = {};
+
+      if (!profileName.trim()) {
+        newErrors.name = "Name is required";
+      }
+      if (!interfaceType.trim()) {
+        newErrors.interfaceType = "Interface Type is required";
+      }
+      if (!smtpFrom.trim()) {
+        newErrors.smtpFrom = "SMTP From is required";
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(smtpFrom)) {
+        newErrors.smtpFrom = "Please enter a valid email";
+      }
+      if (!host.trim()) {
+        newErrors.host = "Host is required";
+      }
+      if (!username.trim()) {
+        newErrors.username = "Username is required";
+      }
+      if (!password.trim()) {
+        newErrors.password = "Password is required";
+      }
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    };
+
+    // SEND TEST EMAIL HANDLE
+    const handleOpenTestEmailModal = () => {
+      // Validasi sebelum membuka modal
+
+      if (!validateForm()) {
+        if(errors.name) {
+          Swal.fire({
+            icon: 'error',
+            text: errors.name,
+            duration: 3000,
+          });
+        }
+        if(errors.interfaceType) {
+          Swal.fire({
+            icon: 'error',
+            text: errors.interfaceType,
+            duration: 3000,
+          });
+        }
+        if(errors.smtpFrom) {
+          Swal.fire({
+            icon: 'error',
+            text: errors.smtpFrom,
+            duration: 3000,
+          });
+        }
+        if(errors.host) {
+          Swal.fire({
+            icon: 'error',
+            text: errors.host,
+            duration: 3000,
+          });
+        }
+        if(errors.username) {
+          Swal.fire({
+            icon: 'error',
+            text: errors.username,
+            duration: 3000,
+          });
+        }
+        if(errors.password) {
+          Swal.fire({
+            icon: 'error',
+            text: errors.password,
+            duration: 3000,
+          });
+        }
+        return;
+      }
+      setShowTestEmailModal(true);
+    };
+
+    const handleCloseTestEmailModal = () => {
+      setShowTestEmailModal(false);
+    };
+
+    // --- Fungsi untuk mengirim email tes ---
+    const handleSendTestEmail = async (recipient: TestRecipient) => {
+      setIsSendingTestEmail(true);
+      const API_URL = import.meta.env.VITE_API_URL;
+      const token = localStorage.getItem('token');
+
+      // Body email sederhana untuk tes
+      const testEmailBody = `<html><body>
+        <h1>Halo ${recipient.name},</h1>
+        <p>Ini adalah email tes dari sistem pengiriman kami.</p>
+        <p>Detail penerima:</p>
+        <ul>
+          <li>Nama: ${recipient.name}</li>
+          <li>Email: ${recipient.email}</li>
+          <li>Posisi: ${recipient.position}</li>
+        </ul>
+        <p>Profil pengiriman yang digunakan: ${profileName}</p>
+        <p>Terima kasih!</p>
+        <p><a href="{{.URL}}">Klik di sini untuk melacak</a></p>
+      </body></html>`;
+
+      const dataToSend = {
+        sendingProfile: {
+          name: profileName,
+          interfaceType: interfaceType,
+          smtpFrom: smtpFrom,
+          host: host,
+          username: username,
+          password: password,
+          emailHeaders: emailHeaders,
+        },
+        recipient: recipient,
+        emailBody: testEmailBody, 
+      };
+
+      try {
+        // Asumsi endpoint API untuk mengirim email tes
+        const response = await fetch(`${API_URL}/sending-profile/send-test-email`, {
+          method: "POST",
+          credentials: 'include',
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(dataToSend),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          Swal.fire({
+            icon: 'error',
+            text: errorData.message || 'Gagal mengirim email tes.',
+            duration: 3000,
+          });
+          return;
+        }
+
+        Swal.fire({
+          icon: 'success',
+          text: 'Email tes berhasil dikirim!',
+          duration: 3000,
+        });
+        handleCloseTestEmailModal(); // Tutup modal setelah berhasil
+      } catch (error: unknown) {
+        console.error("Terjadi kesalahan saat mengirim email tes: ", error);
+        Swal.fire({
+          icon: 'error',
+          text: 'Terjadi kesalahan jaringan atau server saat mengirim email tes.',
+          duration: 3000,
+        });
+      } finally {
+        setIsSendingTestEmail(false);
+      }
+    };
+
     // SEND DATA CREATE
     useImperativeHandle(ref, () => ({
       submitSendingProfile: async () => {
-        // Validasi sederhana
-        if (!profileName || !smtpFrom || !host || !username || !password) {
-          Swal.fire({
-            text:'Please complete all required fields!',
-            icon: 'warning',
-            duration: 3000,
-          })
+        if (!validateForm()) {
           return null;
         }
 
         const API_URL = import.meta.env.VITE_API_URL;
         const token = localStorage.getItem('token');
+        const userData = JSON.parse(localStorage.getItem("user") || "{}");
+        const createdBy = userData?.id || 0; 
         const dataToSend = {
           name: profileName,
           interfaceType: interfaceType,
@@ -94,6 +271,7 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
           username: username,
           password: password,
           emailHeaders: emailHeaders, 
+          createdBy: createdBy, 
         };
 
         try {
@@ -107,6 +285,7 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
             body: JSON.stringify(dataToSend),
           });
 
+          
           if (!response.ok) {
             const errorData = await response.json();
             console.log(errorData);
@@ -116,8 +295,10 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
               duration: 3000,
             });
           }
-
+          
+          
           const result = await response.json();
+          
           Swal.fire({
             icon: 'success',
             text: 'Sending Profile successfully added!',
@@ -139,12 +320,15 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
           <Input
             placeholder="Team A"
             type="text"
-            className="w-full text-sm sm:text-base h-10 px-3"
+            className={`w-full text-sm sm:text-base h-10 px-3 ${errors.name ? 'border-red-500' : ''}`}
             value={profileName}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setProfileName(e.target.value)
             }
           />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+          )}
         </div>
 
         {/* Interface Type */}
@@ -153,26 +337,32 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
           <Input
             placeholder="SMTP"
             type="text"
-            className="w-full text-sm sm:text-base h-10 px-3"
+            className={`w-full text-sm sm:text-base h-10 px-3 ${errors.interfaceType ? 'border-red-500' : ''}`}
             value={interfaceType}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setInterfaceType(e.target.value)
             }
           />
+          {errors.interfaceType && (
+            <p className="text-red-500 text-sm mt-1">{errors.interfaceType}</p>
+          )}
         </div>
 
         {/* SMTP FROM */}
         <div>
           <LabelWithTooltip required>SMTP From</LabelWithTooltip>
           <Input
-            placeholder="First Last example@gmail.com"
+            placeholder="example@gmail.com"
             type="text"
-            className="w-full text-sm sm:text-base h-10 px-3"
+            className={`w-full text-sm sm:text-base h-10 px-3 ${errors.smtpFrom ? 'border-red-500' : ''}`}
             value={smtpFrom}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setSmtpFrom(e.target.value)
             }
           />
+          {errors.smtpFrom && (
+            <p className="text-red-500 text-sm mt-1">{errors.smtpFrom}</p>
+          )}
         </div>
 
         {/* Host */}
@@ -181,12 +371,15 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
           <Input
             placeholder="smtp.example.com"
             type="text"
-            className="w-full text-sm sm:text-base h-10 px-3"
+            className={`w-full text-sm sm:text-base h-10 px-3 ${errors.host ? 'border-red-500' : ''}`}
             value={host}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setHost(e.target.value)
             }
           />
+          {errors.host && (
+            <p className="text-red-500 text-sm mt-1">{errors.host}</p>
+          )}
         </div>
 
         {/* Username */}
@@ -195,12 +388,15 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
           <Input
             placeholder="username"
             type="text"
-            className="w-full text-sm sm:text-base h-10 px-3"
+            className={`w-full text-sm sm:text-base h-10 px-3 ${errors.username ? 'border-red-500' : ''}`}
             value={username}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setUsername(e.target.value)
             }
           />
+          {errors.username && (
+            <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+          )}
         </div>
 
         {/* Password */}
@@ -209,12 +405,15 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
           <Input
             placeholder="******"
             type="password"
-            className="w-full text-sm sm:text-base h-10 px-3"
+            className={`w-full text-sm sm:text-base h-10 px-3 ${errors.password ? 'border-red-500' : ''}`}
             value={password}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               setPassword(e.target.value)
             }
           />
+          {errors.password && (
+            <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+          )}
         </div>
 
         {/* Email Headers Section */}
@@ -436,7 +635,10 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
 
           {/* Send Test Email Button */}
           <div className="mt-6">
-            <Button className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 flex items-center gap-2">
+            <Button
+              className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 flex items-center gap-2"
+              onClick={handleOpenTestEmailModal} 
+            >
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -454,6 +656,14 @@ const NewSendingProfileModalForm = forwardRef<NewSendingProfileModalFormRef>(
             </Button>
           </div>
         </div>
+
+        {/* Render SendTestEmailModal */}
+        <SendTestEmailModal
+          isOpen={showTestEmailModal}
+          onClose={handleCloseTestEmailModal}
+          onSendTestEmail={handleSendTestEmail}
+          isLoading={isSendingTestEmail}
+        />
       </div>
     );
   }

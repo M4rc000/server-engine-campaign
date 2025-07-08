@@ -2,6 +2,7 @@ import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Tabs from "../common/Tabs";
 import ShowLandingPageBodyEditor from "./ShowLandingPageBodyEditor";
+import { formatUserDate } from "../utils/DateFormatter";
 
 type LandingPage = {
   id: number;
@@ -40,8 +41,6 @@ type ShowLandingPageDetailModalFormProps = {
 const ShowLandingPageDetailModalForm = ({ landingPage }: ShowLandingPageDetailModalFormProps) => {
   if (!landingPage) return null;
 
-  console.log('Landing Page: ', landingPage);  
-
   const landingPageTabs = [
     {
       label: "📝 Email Body",
@@ -78,19 +77,7 @@ const ShowLandingPageDetailModalForm = ({ landingPage }: ShowLandingPageDetailMo
             <Input
               id="created-at"
               type="text"
-              value={
-                landingPage.createdAt
-                  ? new Date(landingPage.createdAt).toLocaleDateString('en-GB', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                    timeZoneName: 'short',  
-                    })
-                  : ''
-                }
+              value={formatUserDate(landingPage.createdAt)}
               className="w-full mt-1"
               readonly
             />
@@ -114,19 +101,7 @@ const ShowLandingPageDetailModalForm = ({ landingPage }: ShowLandingPageDetailMo
             <Input
               id="updated-at"
               type="text"
-              value={
-                landingPage.updatedAt
-                  ? new Date(landingPage.updatedAt).toLocaleDateString('en-GB', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: false,
-                    timeZoneName: 'short',  
-                    })
-                  : ''
-              }
+              value={formatUserDate(landingPage.updatedAt)}
               className="w-full mt-1"
               readonly
             />

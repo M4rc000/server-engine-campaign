@@ -42,16 +42,17 @@ export default function SignInForm() {
         }
       );
 
+      const body = await res.json();
       // validation / credentials error
       if (res.status === 400 || res.status === 401 || res.status == 500) {
-        const body = await res.json();
+        console.log('Body', body);
         
         if (body.errors) {
           console.log('Body Errors');
           setErrors(body.errors);
         } else if (body.error) {
           Swal.fire({
-            text: 'Username or Password invalid',
+            text: body.error || 'Username or Password invalid',
             icon: 'error',
             duration: 2000
           })
@@ -67,7 +68,6 @@ export default function SignInForm() {
         throw new Error("Server error");
       }
 
-      const body = await res.json();
       // SAVE DATA LOGIN (SESSION)
       localStorage.setItem("token", body.token);
       localStorage.setItem("token_expired", body.expires_at);
@@ -76,11 +76,16 @@ export default function SignInForm() {
       navigate('/dashboard');
     } catch (err: unknown) {
       console.error(err);
-      let errorMessage = "Login gagal";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      }
-      setErrors({ general: errorMessage });
+      // let errorMessage = "Login gagal";
+      // if (err instanceof Error) {
+      //   errorMessage = err.message;
+      // }
+      // setErrors({ general: errorMessage });
+      Swal.fire({
+        text: 'Login failed',
+        icon: 'error',
+        duration: 2000
+      });
     } finally {
       setLoading(false);
     }
