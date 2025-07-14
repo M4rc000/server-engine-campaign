@@ -5,8 +5,8 @@ import {
   DialogTitle,
   Transition,
 } from '@headlessui/react'
-import { Fragment } from 'react'
-import NewCampaignModalForm from './NewCampaignModalForm'
+import { Fragment, useRef } from 'react' // Import useRef
+import NewCampaignModalForm, { NewCampaignModalFormRef } from './NewCampaignModalForm' // Import NewCampaignModalFormRef
 
 export type NewGroupModalProps = {
   isOpen: boolean
@@ -17,6 +17,20 @@ export default function NewCampaignModal({
   isOpen,
   onClose,
 }: NewGroupModalProps) {
+  // Buat ref untuk mengakses metode dari NewCampaignModalForm
+  const campaignFormRef = useRef<NewCampaignModalFormRef>(null);
+
+  // Fungsi untuk menangani klik tombol Save
+  const handleSave = async () => {
+    if (campaignFormRef.current) {
+      // Panggil fungsi submitCampain dari form
+      const success = await campaignFormRef.current.submitCampain();
+      if (success) {
+        onClose(); // Tutup modal hanya jika pengiriman berhasil
+      }
+    }
+  };
+
   return (
     <Transition show={isOpen} as={Fragment}>
       <Dialog open={isOpen} onClose={()=>{}} className="relative z-[999]">
@@ -33,7 +47,7 @@ export default function NewCampaignModal({
           <DialogBackdrop className="fixed inset-0 bg-black/40 backdrop-filter backdrop-blur-xs"/>
         </Transition.Child>
 
-        <div className="fixed inset-0 flex items-center justify-center p-4" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 flex items-center justify-center p-4 -mt-12" onClick={(e) => e.stopPropagation()}>
           {/* Panel with scale & slide-up animation */}
           <Transition.Child
             as={Fragment}
@@ -44,7 +58,7 @@ export default function NewCampaignModal({
             leaveFrom="translate-y-0 opacity-100 scale-100"
             leaveTo="translate-y-4 opacity-0 scale-95"
           >
-            <DialogPanel className="w-full xl:max-w-fit box-border rounded-lg bg-white dark:bg-gray-900 shadow-xl overflow-visible dark:border dark:border-gray-700 flex flex-col max-h-[90vh] xl:mt-5 z-[9999999999999]" onClick={(e) => e.stopPropagation()}>
+            <DialogPanel className="w-full xl:max-w-5xl box-border rounded-lg bg-white dark:bg-gray-900 shadow-xl overflow-visible dark:border dark:border-gray-700 flex flex-col max-h-[90vh] xl:mt-5 z-[9999999999999]" onClick={(e) => e.stopPropagation()}>
               {/* HEADER */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-b-gray-300 dark:border-b-gray-700 flex-shrink-0">
                 <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -61,7 +75,8 @@ export default function NewCampaignModal({
 
               {/* BODY */}
               <div className="px-6 py-4 overflow-y-auto flex-1">
-                <NewCampaignModalForm />
+                {/* Teruskan ref ke NewCampaignModalForm */}
+                <NewCampaignModalForm ref={campaignFormRef} onSuccess={onClose} />
               </div>
 
               {/* FOOTER */}
@@ -73,9 +88,7 @@ export default function NewCampaignModal({
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    onClose()
-                  }}
+                  onClick={handleSave} // Panggil fungsi handleSave saat tombol Save diklik
                   className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
                 >
                   Save

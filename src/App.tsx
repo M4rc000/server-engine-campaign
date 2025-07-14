@@ -29,6 +29,7 @@ const PhishingWebsite = lazy(() => import("./pages/PhisingWebsite/PhisingWebsite
 const TrainingModules = lazy(() => import("./pages/TrainingModules/TrainingModules"));
 const LoggingActivity = lazy(() => import("./pages/LoggingActivity/LoggingActivity"));
 const CommingSoon = lazy(() => import("./pages/OtherPage/CommingSoon"));
+const Unauthorized = lazy(() => import("./pages/OtherPage/Unauthorized"));
 
 
 export default function App() {
@@ -94,6 +95,7 @@ export default function App() {
               {/* <Route path="/reset-password" element={<ForgotPassword />} /> */}
 
               {/* Fallback */}
+              <Route path="/unauthorized" element={<Unauthorized />} /> 
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
