@@ -13,6 +13,7 @@ import { UserSessionProvider } from "./components/context/UserSessionContext";
 import { AccountSettings } from "./pages/AccountSettings/AccountSettings";
 
 // Lazy-load komponen halaman
+const Lander = lazy(() => import("./pages/LandingPages/Lander"));
 const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
 const NotFound = lazy(() => import("./pages/OtherPage/NotFound"));
 const UserProfiles = lazy(() => import("./pages/UserProfiles"));
@@ -66,6 +67,11 @@ export default function App() {
                   <Route path="/environtment-check" element={<CommingSoon />} />
                 </Route>
               </Route>
+
+              {/* PUBLIC ROUTE */}
+              
+              {/* Lander Routes */}
+              <Route path="/lander" element={<Lander />} />
 
               {/* Auth Routes */}
               <Route
