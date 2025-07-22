@@ -11,6 +11,7 @@ import { AlertContainer } from "./components/utils/AlertContainer";
 import AuthWatcher from "./components/utils/AuthWatcher";
 import { UserSessionProvider } from "./components/context/UserSessionContext";
 import { AccountSettings } from "./pages/AccountSettings/AccountSettings";
+import ThankYouReport from "./pages/OtherPage/ThanksReport";
 
 // Lazy-load komponen halaman
 const Lander = lazy(() => import("./pages/LandingPages/Lander"));
@@ -61,7 +62,7 @@ export default function App() {
                   <Route path="/phishing-emails" element={<PhishingEmail />} />
                   <Route path="/phishing-websites" element={<PhishingWebsite />} />
                   <Route path="/training-modules" element={<TrainingModules />} />
-                  <Route path="/subscription-billing" element={<CommingSoon />} />
+                  {/* <Route path="/subscription-billing" element={<CommingSoon />} /> */}
                   <Route path="/account-settings" element={<AccountSettings />} />
                   <Route path="/logging-activity" element={<LoggingActivity />} />
                   <Route path="/environtment-check" element={<CommingSoon />} />
@@ -72,6 +73,7 @@ export default function App() {
               
               {/* Lander Routes */}
               <Route path="/lander" element={<Lander />} />
+              <Route path="/report-thanks" element={<ThankYouReport />} />
 
               {/* Auth Routes */}
               <Route

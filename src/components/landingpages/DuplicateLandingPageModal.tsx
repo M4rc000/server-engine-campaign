@@ -6,39 +6,40 @@ import {
   Transition,
 } from '@headlessui/react'
 import { Fragment } from 'react'
-import EditEmailTemplateModalForm, {EditEmailTemplateModalFormRef} from './EditEmailTemplateModalForm'
+import DuplicateLandingPageModalForm, {DuplicateLandingPageModalFormRef} from './DuplicateLandingPageModalForm'
 import { useRef, useState } from 'react'
 import Swal from '../utils/AlertContainer'
 
-type EmailTemplate = {
+type LandingPage = {
   id: number;
   name: string;
-  envelopeSender: string;
+  body: string;
   isSystemTemplate: number;
-  subject: string;
-  bodyEmail: string;
-  trackerImage: number;
+  createdAt: string;
+  createdBy: number;
+  updatedAt: string;
+  updatedBy: number;
 };
 
-export type EditEmailTemplateModalProps = {
+export type DuplicateLandingPageModalProps = {
   isOpen: boolean
-  emailTemplate: EmailTemplate | null;
+  landingPage: LandingPage | null;
   onClose: () => void
-  onEmailTemplateUpdated?: () => void;
+  onLandingPageUpdated?: () => void;
 }
 
-export default function EditEmailTemplateModal({
+export default function DuplicateLandingPageModal({
   isOpen,
   onClose,
-  onEmailTemplateUpdated,
-  emailTemplate,
-}: EditEmailTemplateModalProps) {
-  const formRef = useRef<EditEmailTemplateModalFormRef>(null);
+  onLandingPageUpdated,
+  landingPage,
+}: DuplicateLandingPageModalProps) {
+  const formRef = useRef<DuplicateLandingPageModalFormRef>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   return (
     <Transition show={isOpen} as={Fragment}>
-      <Dialog open={isOpen} onClose={()=>{}} className="relative z-[999]">
+      <Dialog open={isOpen} onClose={() => {}} className="relative z-[999]">
         {/* Backdrop with fade animation */}
         <Transition.Child
           as={Fragment}
@@ -68,7 +69,7 @@ export default function EditEmailTemplateModal({
               {/* HEADER */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-b-gray-300 dark:border-b-gray-600 flex-shrink-0">
                 <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Edit Email Template
+                  New Landing Page
                 </DialogTitle>
                 <button
                   onClick={onClose}
@@ -80,8 +81,8 @@ export default function EditEmailTemplateModal({
               </div>
 
               {/* BODY */}
-              <div className="px-6 py-4 overflow-y-auto flex-1">
-                <EditEmailTemplateModalForm ref={formRef} emailTemplate={emailTemplate!}/>
+              <div className="overflow-y-auto flex-1">
+                <DuplicateLandingPageModalForm ref={formRef} landingPage={landingPage}/>
               </div>
 
               {/* FOOTER */}
@@ -97,23 +98,16 @@ export default function EditEmailTemplateModal({
                     try {
                       setIsLoading(true);
                       
-                      const success = await formRef.current?.submitEmailTemplate();
+                      const success = await formRef.current?.submitLandingPage();
                       
                       if (success) {
                         onClose();
-                        Swal.fire({
-                          text: 'Email template updated successfully',
-                          icon: "success",
-                          duration: 2000
-                        })
-                        
-                        // Panggil callback untuk refresh data
-                        if (onEmailTemplateUpdated) {
-                          onEmailTemplateUpdated();
+                        if (onLandingPageUpdated) {
+                          onLandingPageUpdated();
                         }
                       } else {
                         Swal.fire({
-                          text: 'Failed to update email template. Please try again!',
+                          text: 'Failed to update landing page. Please try again!',
                           icon: "error",
                           duration: 2000
                         })
@@ -121,7 +115,7 @@ export default function EditEmailTemplateModal({
                     } catch (error) {
                       console.log('Error: ', error);
                       Swal.fire({
-                        text: 'An error occurred while updating email template!',
+                        text: 'An error occurred while updating landing page!',
                         icon: "error",
                         duration: 2000
                       })

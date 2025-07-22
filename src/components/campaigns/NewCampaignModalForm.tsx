@@ -303,19 +303,6 @@ const NewCampaignModalForm = forwardRef<NewCampaignModalFormRef, NewCampaignModa
         }),
       });
 
-      console.log('Body: ', {
-        name: campaign.name,
-        launch_date: formattedLaunchDate, // Menggunakan launch_date sesuai model Go
-        send_email_by: formattedSendEmailBy, // Menggunakan send_email_by sesuai model Go
-        url: campaign.url,
-        group_id: parseInt(campaign.group), // Menggunakan group_id dan konversi ke integer
-        email_template_id: parseInt(campaign.emailTemplate), // Menggunakan email_template_id
-        landing_page_id: parseInt(campaign.landingPage), // Menggunakan landing_page_id
-        sending_profile_id: parseInt(campaign.sendingProfile), // Menggunakan sending_profile_id
-        created_by: createdBy // Menggunakan created_by
-      });
-      
-
       if (!response.ok) {
         let errorMessage = 'Failed to create campaign';
         
@@ -588,7 +575,7 @@ const NewCampaignModalForm = forwardRef<NewCampaignModalFormRef, NewCampaignModa
                 mode="datetime"
                 placeholder="Select a date"
                 value={campaign.launchDate} // Mengikat nilai ke state
-                onChange={(dates, currentDateString) => {
+                onChange={(_, currentDateString) => {
                   handleInputChange('launchDate', currentDateString);
                 }}
               />
@@ -604,7 +591,7 @@ const NewCampaignModalForm = forwardRef<NewCampaignModalFormRef, NewCampaignModa
                 mode="datetime"
                 placeholder="Select a date"
                 value={campaign.sendEmailBy || ""} // Mengikat nilai ke state
-                onChange={(dates, currentDateString) => {
+                onChange={(_, currentDateString) => {
                   handleInputChange('sendEmailBy', currentDateString);
                 }}
               />

@@ -6,7 +6,7 @@ import {
   Transition,
 } from '@headlessui/react'
 import { Fragment } from 'react'
-import EditEmailTemplateModalForm, {EditEmailTemplateModalFormRef} from './EditEmailTemplateModalForm'
+import DuplicateEmailTemplateModalForm, {DuplicateEmailTemplateModalFormRef} from './DuplicateEmailTemplateModalForm'
 import { useRef, useState } from 'react'
 import Swal from '../utils/AlertContainer'
 
@@ -20,20 +20,20 @@ type EmailTemplate = {
   trackerImage: number;
 };
 
-export type EditEmailTemplateModalProps = {
+export type DuplicateEmailTemplateModalProps = {
   isOpen: boolean
   emailTemplate: EmailTemplate | null;
   onClose: () => void
-  onEmailTemplateUpdated?: () => void;
+  onUserUpdated?: () => void;
 }
 
-export default function EditEmailTemplateModal({
+export default function DuplicateEmailTemplateModal({
   isOpen,
   onClose,
-  onEmailTemplateUpdated,
+  onUserUpdated,
   emailTemplate,
-}: EditEmailTemplateModalProps) {
-  const formRef = useRef<EditEmailTemplateModalFormRef>(null);
+}: DuplicateEmailTemplateModalProps) {
+  const formRef = useRef<DuplicateEmailTemplateModalFormRef>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   return (
@@ -68,7 +68,7 @@ export default function EditEmailTemplateModal({
               {/* HEADER */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-b-gray-300 dark:border-b-gray-600 flex-shrink-0">
                 <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Edit Email Template
+                  New Email Template
                 </DialogTitle>
                 <button
                   onClick={onClose}
@@ -81,7 +81,7 @@ export default function EditEmailTemplateModal({
 
               {/* BODY */}
               <div className="px-6 py-4 overflow-y-auto flex-1">
-                <EditEmailTemplateModalForm ref={formRef} emailTemplate={emailTemplate!}/>
+                <DuplicateEmailTemplateModalForm ref={formRef} emailTemplate={emailTemplate!}/>
               </div>
 
               {/* FOOTER */}
@@ -108,8 +108,8 @@ export default function EditEmailTemplateModal({
                         })
                         
                         // Panggil callback untuk refresh data
-                        if (onEmailTemplateUpdated) {
-                          onEmailTemplateUpdated();
+                        if (onUserUpdated) {
+                          onUserUpdated();
                         }
                       } else {
                         Swal.fire({
@@ -121,7 +121,7 @@ export default function EditEmailTemplateModal({
                     } catch (error) {
                       console.log('Error: ', error);
                       Swal.fire({
-                        text: 'An error occurred while updating email template!',
+                        text: 'An error occurred while updating user!',
                         icon: "error",
                         duration: 2000
                       })

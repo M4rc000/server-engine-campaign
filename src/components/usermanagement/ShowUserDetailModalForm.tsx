@@ -9,7 +9,7 @@ type User = {
   position: string;
   company: string;
   isActive: string;
-  role: string;
+  role: number;
   roleName: string;
   lastLogin: string;
   createdAt: string;
@@ -21,8 +21,6 @@ type User = {
 };
 
 type ShowUserDetailModalFormProps = {
-  // isOpen: boolean
-  // onClose: () => void
   user: User | null; 
 };
 
