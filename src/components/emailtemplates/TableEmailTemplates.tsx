@@ -15,7 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
+import { LuArrowBigLeftDash } from "react-icons/lu";
+import { LuArrowBigRightDash } from "react-icons/lu";
+import { LuArrowBigLeft } from "react-icons/lu";
+import { LuArrowBigRight } from "react-icons/lu";
 import { FaRegTrashAlt } from "react-icons/fa";
 import { BiSolidEditAlt } from "react-icons/bi";
 import { IoIosCopy } from "react-icons/io";
@@ -35,7 +38,7 @@ interface EmailTemplate{
   envelopeSender: string;
   subject: string;
   bodyEmail: string;
-  trackerImage: number;
+  language: string;
   isSystemTemplate: number;
   createdAt: string;
   createdBy: number;
@@ -146,22 +149,40 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
         accessorKey: 'id',
         header: '#',
         cell: info => info.row.index + 1,
+        size: 10,
       },
       {
         accessorKey: 'name',
         header: 'Name',
+        size: 10,
       },
       {
         accessorKey: 'envelopeSender',
         header: 'Envelope Sender',
+        size: 10,
       },
       {
         accessorKey: 'subject',
         header: 'Subject',
+        size: 10,
+      },
+      {
+        accessorKey: 'isSystemTemplate',
+        header: 'Default?',
+        size: 95,
+        cell: ({ getValue }) =>{
+          const raw = getValue();
+          if(raw == 1){
+            return <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-400 text-green-800 dark:bg-green-700 dark:text-green-100 rounded-full">Yes</span>
+          } else {
+            return <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-200 text-gray-800 rounded-full">No</span>
+          }
+        }
       },
       {
         accessorKey: 'createdAt',
-        header: 'Created At',
+        header: 'Created \nAt',
+        size: 10,
         cell: ({ getValue }) => {
           const raw = getValue();
           if (!raw || (typeof raw !== 'string' && typeof raw !== 'number' && !(raw instanceof Date))) return '-';
@@ -183,6 +204,7 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
       {
         accessorKey: 'updatedAt',
         header: 'Last Modified',
+        size: 10,
         cell: ({ getValue }) => {
           const raw = getValue();
           if (!raw || typeof raw !== 'string' || raw.trim() === '') return '-';
@@ -205,20 +227,33 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
         id: 'actions',
         accessorKey: 'actions',
         header: 'Action',
+        size: 120,
         cell: (row) => (
-          <div className="flex items-center space-x-2">
-            <Button size="xs" variant="success" onClick={() => onDuplicate(row.row.original)}>
-              <IoIosCopy />
-            </Button>
-            <Button size="xs" variant="info" onClick={() => onShowDetail(row.row.original)}>
-              <FaCircleInfo />
-            </Button>
-            <Button size="xs" variant="warning" onClick={() => onEdit(row.row.original)}>
-              <BiSolidEditAlt />
-            </Button>
-            <Button size="xs" variant="danger" onClick={() => onDelete(row.row.original)}>
-              <FaRegTrashAlt />
-            </Button>
+          <div className='pr-4 lg:pr-3'>
+            <div className="grid grid-cols-2 gap-8 lg:gap-6 p-1 space-x-2">
+              <div>
+                <Button size="xs" variant="success" onClick={() => onDuplicate(row.row.original)}>
+                  <IoIosCopy />
+                </Button>
+              </div>
+              <div>
+                <Button size="xs" variant="info" onClick={() => onShowDetail(row.row.original)}>
+                  <FaCircleInfo />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-8 lg:gap-6 p-1 space-x-2">
+              <div>
+                <Button size="xs" variant="warning" onClick={() => onEdit(row.row.original)}>
+                  <BiSolidEditAlt />
+                </Button>
+              </div>
+              <div>
+                <Button size="xs" variant="danger" onClick={() => onDelete(row.row.original)}>
+                  <FaRegTrashAlt />
+                </Button>
+              </div>
+            </div>
           </div>
         ),
       },
@@ -254,8 +289,8 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
   }, [reloadTrigger]);
 
   return (
-    <div className="overflow-hidden rounded-xl bg-white dark:bg-white/[0.03] dark:border-gray-800 dark:border-1 border-gray-200 border-1 mx-4">
-      <div className="p-4 rounded-lg bg-white dark:bg-white/[0.03]">
+    <div className="overflow-hidden rounded-xl bg-white dark:bg-white/[0.03] dark:border-gray-800 border mx-4 shadow-xl">
+      <div className="p-4 rounded-tl-lg rounded-tr-lg bg-white dark:bg-white/[0.03]">
         <form onSubmit={(e) => e.preventDefault()}>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div className="relative">
@@ -276,7 +311,7 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
               </div>
             </div>
             {/* SEARCH BAR */}
-            <div className={`relative ${isExpanded ? 'xl:mx-40' : 'xl:mx-74'}`}>
+            <div className={`relative ${isExpanded ? 'xl:mx-36' : 'xl:mx-70'}`}>
               <span className="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
                 <svg
                   className="fill-gray-500 dark:fill-gray-400"
@@ -311,171 +346,297 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
         </form>
       </div>
 
-      <div className="max-w-full overflow-x-auto xl:overflow-x-hidden">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map(header => {
-                  const isSorted = header.column.getIsSorted();  // 'asc' | 'desc' | false
-                  const canSort = header.column.getCanSort();
+      <div className="max-w-full overflow-x-auto">
+        <div className="inline-block min-w-full align-middle">
+          <Table className="min-w-full">
+            <TableHeader>
+                {table.getHeaderGroups().map(headerGroup => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map(header => {
+                      const isSorted = header.column.getIsSorted();
+                      const canSort = header.column.getCanSort();
 
-                  return (
-                    <TableCell
-                      key={header.id}
-                      isHeader
-                      className="
-                        relative 
-                        px-5 py-3 pr-6
-                        text-center text-gray-500 text-sm 
-                        cursor-pointer select-none
-                      "
-                      >
-                      <div
-                        onClick={header.column.getToggleSortingHandler()}>
-                        {flexRender(header.column.columnDef.header, header.getContext())}
+                      return (
+                        <td
+                          key={header.id}
+                          className="
+                            relative 
+                            px-3 py-3
+                            text-center text-gray-500 text-sm font-medium
+                            cursor-pointer select-none
+                            whitespace-nowrap overflow-hidden text-ellipsis
+                            bg-gray-50 dark:bg-gray-800/50
+                            border-b border-gray-200 dark:border-gray-700"
+                          style={{
+                            width: header.getSize(),
+                            maxWidth: header.getSize()
+                          }}
+                          >
+                          <div
+                            onClick={header.column.getToggleSortingHandler()}
+                            className="flex items-center justify-center gap-1">
+                            <span className="truncate">
+                              {flexRender(header.column.columnDef.header, header.getContext())}
+                            </span>
 
-                        {canSort && (
-                          <div className="mt-1 w-1 text-xs">
-                            <span
-                              className={`
-                                ${isSorted === "asc"
-                                  ? "text-gray-800"
-                                  : "text-gray-300"}
-                            `}
-                            >
-                              ▲
-                            </span>
-                            <span
-                              className={`mr-22
-                                ${isSorted === "desc"
-                                  ? "text-gray-800"
-                                  : "text-gray-300"
-                              }`}
-                            >
-                              ▼
-                            </span>
+                            {canSort && (
+                              <div className="flex flex-col text-xs leading-none">
+                                <span
+                                  className={`
+                                    ${isSorted === "asc"
+                                      ? "text-gray-800 dark:text-gray-200"
+                                      : "text-gray-300 dark:text-gray-600"}
+                                `}
+                                >
+                                  ▲
+                                </span>
+                                <span
+                                  className={`
+                                    ${isSorted === "desc"
+                                      ? "text-gray-800 dark:text-gray-200"
+                                      : "text-gray-300 dark:text-gray-600"
+                                    }`}
+                                >
+                                  ▼
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </TableCell>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              <tr>
-                <td colSpan={columns.length} className="relative h-[40px]">
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 italic">
-                    <svg className="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
-                    </svg>
-                  </div>
-                </td>
-              </tr>
-            ) : table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map(row => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id} className="px-5 py-3 text-sm text-gray-600 text-center">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={columns.length} className="relative h-[40px]">
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500 italic">
-                    No data available
-                  </div>
-                </td>
-              </tr>
-            )}
-          </TableBody>
-        </Table>
+
+                          {/* Column Resize Handle */}
+                          {header.column.getCanResize() && (
+                            <div
+                              onMouseDown={header.getResizeHandler()}
+                              onTouchStart={header.getResizeHandler()}
+                              className="absolute right-0 top-0 h-full w-1 cursor-col-resize bg-transparent hover:bg-blue-500 opacity-0 hover:opacity-100 transition-opacity"
+                            />
+                          )}
+                        </td>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={columns.length} className="relative h-[40px]">
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500 italic">
+                      <svg className="animate-spin h-6 w-6 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 100 16v-4l-3 3 3 3v-4a8 8 0 01-8-8z" />
+                      </svg>
+                    </div>
+                  </td>
+                </tr>
+              ) : table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map(row => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map(cell => (
+                      <TableCell key={cell.id} className="px-5 py-3 text-sm text-gray-600 text-center border-b border-gray-100 dark:border-gray-800">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={columns.length} className="relative h-[40px]">
+                    <div className="absolute inset-0 flex items-center justify-center text-gray-500 italic">
+                      No data available
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* PAGINATION */}
-      <div className="flex items-center justify-between p-4 text-gray-600 dark:text-gray-500 text-sm">
-        <div>
-          Showing {table.getState().pagination.pageIndex + 1} to {table.getState().pagination.pageSize}  of{' '}
-          {table.getPageCount()}
+      <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white dark:bg-white/[0.03] border-t border-gray-200 dark:border-gray-700">
+        {/* Entries Info */}
+        <div className="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-0">
+            <span>
+              Showing{' '}
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
+              </span>{' '}
+              to{' '}
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}
+              </span>{' '}
+              of{' '}
+              <span className="font-semibold text-gray-700 dark:text-gray-300">
+                  {table.getFilteredRowModel().rows.length}
+              </span>{' '}
+              entries
+            </span>
         </div>
-        <div className="space-x-2">
-          <div>
-            <nav aria-label="Pagination" className="isolate inline-flex -space-x-px rounded-md shadow-xs">
-              <a
-                href="#"
-                className={`relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 dark:ring-gray-700 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0${!table.getCanPreviousPage() ? ' opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
-                onClick={e => {
-                  e.preventDefault();
-                  if (table.getCanPreviousPage()) table.previousPage();
-                }}
-                aria-disabled={!table.getCanPreviousPage()}
-                tabIndex={!table.getCanPreviousPage() ? -1 : 0}>
-                <span className="sr-only">Previous</span>
-                <ChevronLeftIcon aria-hidden="true" className="size-5" color='grey'/>
-              </a>
 
-              {/* Page Numbers */}
-              {Array.from({ length: table.getPageCount() }, (_, i) => i).map((page) => {
-                const currentPage = table.getState().pagination.pageIndex;
-                const totalPage = table.getPageCount();
+        {/* Pagination Controls */}
+        <div className="flex items-center space-x-1">
+            {/* First Page Button */}
+            <button
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+                className={`
+                  inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600
+                  ${!table.getCanPreviousPage()
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
+                  }
+                  transition-colors duration-200
+                `}
+                title="First page"
+            >
+                <LuArrowBigLeftDash size={20}/>
+            </button>
 
-                // Only show first, last, current, current±1
-                if (
-                  page === 0 ||
-                  page === totalPage - 1 ||
-                  Math.abs(currentPage - page) <= 1
-                ) {
-                return (
-                  <a
-                    key={page}
-                    onClick={() => table.setPageIndex(page)}
-                    href="#"
-                    aria-current="page"
-                    className={`relative z-10 inline-flex items-center px-4 py-2 text-sm font-regular focus:z-20 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 dark:text-grey-400 ${
-                      currentPage === page
-                        ? 'z-10 bg-blue-600 text-white focus:outline-blue-600 ring-gray-300 dark:ring-gray-700 border-1 border-gray-400 dark:border-gray-700'
-                        : 'text-gray-600 ring-gray-300 hover:bg-gray-50 dark:text-gray-400 dark:ring-gray-700 border-1 border-gray-300 dark:border-gray-700'
-                    }`}>
-                    {page + 1}
-                  </a>
-              );}
+            {/* Previous Page Button */}
+            <button
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                className={`
+                  inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600
+                  ${!table.getCanPreviousPage()
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
+                  }
+                  transition-colors duration-200 
+                `}
+                title="Previous page"
+            >
+                <LuArrowBigLeft size={20}/>
+            </button>
 
-              if (
-                page === currentPage - 2 ||
-                page === currentPage + 2
-              ) {
-                return (
-                <a
-                  href="#"
-                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-gray-300 dark:ring-gray-700 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
-                    ...
-                </a>
-                );
-                }
-                return null;
-              })}
+            {/* Page Numbers */}
+            <div className="flex items-center space-x-1">
+                {(() => {
+                    const currentPage = table.getState().pagination.pageIndex;
+                    const totalPages = table.getPageCount();
+                    const pages = [];
 
-              <a
-                onClick={e => {
-                  e.preventDefault();
-                  if (table.getCanNextPage()) table.nextPage();
-                }}
-                aria-disabled={!table.getCanNextPage()}
-                href="#"
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-300 ring-1 ring-gray-300 dark:ring-gray-700 ring-inset hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                <span className="sr-only">Previous</span>
-                <ChevronRightIcon aria-hidden="true" className="size-5" color='grey'/>
-              </a>
-            </nav>
-          </div>
+                    // Always show first page
+                    if (totalPages > 0) {
+                        pages.push(
+                            <button
+                                key={0}
+                                onClick={() => table.setPageIndex(0)}
+                                className={`
+                                  inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg
+                                  ${currentPage === 0
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm'
+                                  }
+                                  transition-colors duration-200
+                                `}
+                            >
+                                1
+                            </button>
+                        );
+                    }
+
+                    // Show ellipsis if there's a gap
+                    if (currentPage > 3) {
+                        pages.push(
+                            <span key="ellipsis-start" className="inline-flex items-center justify-center w-9 h-9 text-sm text-gray-400 dark:text-gray-500">
+                                ...
+                            </span>
+                        );
+                    }
+
+                    // Show pages around current page
+                    const start = Math.max(1, currentPage - 1);
+                    const end = Math.min(totalPages - 1, currentPage + 1);
+
+                    for (let i = start; i <= end; i++) {
+                        if (i !== 0 && i !== totalPages - 1) {
+                            pages.push(
+                                <button
+                                    key={i}
+                                    onClick={() => table.setPageIndex(i)}
+                                    className={`
+                                      inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg
+                                      ${currentPage === i
+                                        ? 'bg-blue-600 text-white shadow-sm'
+                                        : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm'
+                                      }
+                                      transition-colors duration-200
+                                    `}
+                                >
+                                    {i + 1}
+                                </button>
+                            );
+                        }
+                    }
+
+                    // Show ellipsis if there's a gap
+                    if (currentPage < totalPages - 4) {
+                        pages.push(
+                            <span key="ellipsis-end" className="inline-flex items-center justify-center w-9 h-9 text-sm text-gray-400 dark:text-gray-500">
+                                ...
+                            </span>
+                        );
+                    }
+
+                    // Always show last page (if more than 1 page)
+                    if (totalPages > 1) {
+                        pages.push(
+                            <button
+                                key={totalPages - 1}
+                                onClick={() => table.setPageIndex(totalPages - 1)}
+                                className={`
+                                  inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg
+                                  ${currentPage === totalPages - 1
+                                    ? 'bg-blue-600 text-white shadow-sm'
+                                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 shadow-sm'
+                                  }
+                                  transition-colors duration-200
+                                `}
+                            >
+                                {totalPages}
+                            </button>
+                        );
+                    }
+
+                    return pages;
+                })()}
+            </div>
+
+            {/* Next Page Button */}
+            <button
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                className={`
+                  inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600
+                  ${!table.getCanNextPage()
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
+                  }
+                  transition-colors duration-200 mr-1 // Tambah margin kanan sedikit
+                `}
+                title="Next page"
+            >
+              <LuArrowBigRight size={20}/>
+            </button>
+
+            {/* Last Page Button */}
+            <button
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+                className={`
+                  inline-flex items-center justify-center w-9 h-9 text-sm font-medium rounded-lg border border-gray-300 dark:border-gray-600
+                  ${!table.getCanNextPage()
+                    ? 'text-gray-300 dark:text-gray-600 cursor-not-allowed bg-gray-50 dark:bg-gray-800'
+                    : 'text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm'
+                  }
+                  transition-colors duration-200
+                `}
+                title="Last page"
+            >
+              <LuArrowBigRightDash size={20}/>
+            </button>
         </div>
       </div>
 

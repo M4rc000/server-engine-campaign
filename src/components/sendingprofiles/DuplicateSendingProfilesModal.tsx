@@ -6,7 +6,7 @@ import {
   Transition,
 } from '@headlessui/react'
 import { Fragment, useState, useRef } from 'react'
-import UpdateSendingProfilesModalForm, {UpdateSendingProfileModalFormRef} from './UpdateSendingProfilesModalForm'
+import DuplicateSendingProfilesModalForm, {DuplicateSendingProfileModalFormRef} from './DuplicateSendingProfilesModalForm'
 
 type SendingProfile = {
   id: number;
@@ -16,7 +16,7 @@ type SendingProfile = {
 	username     : string;
 	password     : string;
 	host         : string;
-	port         : string;
+  port: string;
 	createdAt    : string;
 	createdBy    : number;
 	createdByName    : string;
@@ -27,15 +27,15 @@ type SendingProfile = {
 	EmailHeaders : string;
 }
 
-export type UpdateSendingProfilesModalFormProps = {
+export type DuplicateSendingProfilesModalFormProps = {
   isOpen: boolean
   onClose: () => void
   onSendingProfileUpdated: () => void
   sendingProfile: SendingProfile
 }
 
-const UpdateSendingProfilesModal = (props: UpdateSendingProfilesModalFormProps) => {
-  const formRef = useRef<UpdateSendingProfileModalFormRef>(null);
+const DuplicateSendingProfilesModal = (props: DuplicateSendingProfilesModalFormProps) => {
+  const formRef = useRef<DuplicateSendingProfileModalFormRef>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fungsi untuk menangani penyimpanan (update) data
@@ -90,7 +90,7 @@ const UpdateSendingProfilesModal = (props: UpdateSendingProfilesModalFormProps) 
               {/* HEADER */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-b-gray-300 dark:border-b-gray-800 flex-shrink-0">
                 <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Update Sending Profiles
+                  New Sending Profiles
                 </DialogTitle>
                 <button
                   onClick={props.onClose}
@@ -103,7 +103,7 @@ const UpdateSendingProfilesModal = (props: UpdateSendingProfilesModalFormProps) 
 
               {/* BODY */}
               <div className="px-6 py-4 overflow-y-auto flex-1">
-                <UpdateSendingProfilesModalForm ref={formRef} sendingProfile={props.sendingProfile}/>
+                <DuplicateSendingProfilesModalForm ref={formRef} sendingProfile={props.sendingProfile}/>
               </div>
 
               {/* FOOTER */}
@@ -149,4 +149,4 @@ const UpdateSendingProfilesModal = (props: UpdateSendingProfilesModalFormProps) 
   )
 }
 
-export default UpdateSendingProfilesModal;
+export default DuplicateSendingProfilesModal;
