@@ -159,6 +159,7 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
       {
         accessorKey: 'id',
         header: '#',
+        size: 15,
         cell: info => info.row.index + 1,
       },
       {
@@ -220,9 +221,10 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
         id: 'actions',
         accessorKey: 'actions',
         header: 'Action',
+        size: 120,
         cell: (row) => (
-          <div className='pr-4 lg:pr-0'>
-            <div className="grid grid-cols-2 gap-8 lg:gap-4 p-1 space-x-2">
+          <div className='pr-4 lg:pr-10'>
+            <div className="grid grid-cols-2 gap-8 lg:gap-8 p-1 space-x-2">
                 <div>
                   <Button size="xs" variant="success" onClick={() => onDuplicateSendingProfiles(row.row.original)}>
                     <IoIosCopy />
@@ -234,7 +236,7 @@ export default function TableUsers({ reloadTrigger, onReload }: { reloadTrigger?
                   </Button>
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-8 lg:gap-4 p-1 space-x-2">
+            <div className="grid grid-cols-2 gap-8 lg:gap-8 p-1 space-x-2">
               <div>
                 <Button size="xs" variant="warning" onClick={() => onUpdateSendingProfiles(row.row.original)}>
                   <BiSolidEditAlt />

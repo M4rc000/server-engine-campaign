@@ -89,7 +89,7 @@ export default function SignInForm() {
       localStorage.setItem("token_expired", body.expires_at);
       setUser(userData);
       
-      navigate('/dashboard');
+      navigate('/campaigns');
       
     } catch (err: unknown) {
       console.error(err);

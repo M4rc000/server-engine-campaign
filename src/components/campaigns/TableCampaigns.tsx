@@ -42,6 +42,7 @@ import DeleteCampaignModal from "../../components/campaigns/DeleteCampaignModal"
 
 export interface Campaign {
   id: number;
+  uid: string;
   name: string;
   launch_date: Date;
   send_email_by: Date;
@@ -143,6 +144,7 @@ export default function TableCampaigns({ reloadTrigger, onReload }: { reloadTrig
       }
 
       const result: FetchCampaignsResult<Campaign> = await res.json();
+      
       setCampaignsData(result.data);
     } catch (err: unknown) {
       console.error(err);
@@ -198,24 +200,27 @@ export default function TableCampaigns({ reloadTrigger, onReload }: { reloadTrig
 
   // Handler untuk campaign yang berhasil dihapus
   const handleCampaignDeleted = useCallback(() => {
-    // Hitung data baru setelah filter diterapkan
-    const filteredData = campaignsData.filter(campaign => {
-      if (!deferredSearch) return true;
-      return campaign.name.toLowerCase().includes(deferredSearch.toLowerCase()) ||
-             campaign.status.toLowerCase().includes(deferredSearch.toLowerCase());
-    });
-    
-    const newDataLength = filteredData.length - 1; // Kurangi 1 karena data akan terhapus
-    
-    // Tangani pagination
-    handlePaginationAfterDelete(newDataLength);
-    
-    // Fetch data terbaru
-    fetchCampaigns();
-    
-    // Trigger reload callback jika ada
-    if (onReload) onReload();
-  }, [campaignsData, deferredSearch, handlePaginationAfterDelete, fetchCampaigns, onReload]);
+  // Hapus dari state campaignsData secara langsung dulu
+  if (selectedCampaign) {
+    setCampaignsData(prev => prev.filter(c => c.id !== selectedCampaign.id));
+  }
+
+  // Tangani pagination
+  const filteredData = campaignsData.filter(campaign => {
+    if (!deferredSearch) return true;
+    return campaign.name.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+           campaign.status.toLowerCase().includes(deferredSearch.toLowerCase());
+  });
+  
+  const newDataLength = filteredData.length - 1;
+  handlePaginationAfterDelete(newDataLength);
+
+  // Fetch ulang untuk pastikan sinkron dengan server
+  fetchCampaigns();
+
+  if (onReload) onReload();
+  }, [campaignsData, deferredSearch, selectedCampaign, fetchCampaigns, handlePaginationAfterDelete, onReload]);
+
 
   // Definisi kolom tabel menggunakan useMemo untuk optimasi
   const columns = useMemo<ColumnDef<Campaign>[]>(

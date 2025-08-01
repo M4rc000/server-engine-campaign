@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Swal from "../utils/AlertContainer";
 import Select from "../form/Select";
 import { useDropzone } from "react-dropzone";
+import { BsTrash } from "react-icons/bs";
 
 const EMAIL_TEMPLATES_STATIC: { name: string; content: string }[] = [];
 
@@ -19,16 +20,16 @@ interface FileWithTempId extends File {
   _tempId: string;
 }
 
-type EmailBodyEditorTemplateProps = {
+type EditEmailBodyEditorTemplateProps = {
   templateName?: string;
   envelopeSender?: string;
   subject?: string;
   initialContent?: string;
   initialTrackerValue?: number;
   onBodyChange?: (body: string) => void;
-  // New prop: initial list of existing attachments
+  // Prop for initial list of existing attachments
   initialAttachments?: AttachmentMetadata[]; 
-  // New prop: callback for changes in both new and removed attachments
+  // Callback for changes in both new and removed attachments
   onAttachmentsChange?: (newFiles: File[], removedExistingAttachmentIds: number[]) => void;
 };
 
@@ -42,7 +43,7 @@ interface FetchedEmailTemplate {
   body: string;
 }
 
-const EmailBodyEditorTemplate = ({
+const EditEmailBodyEditorTemplate = ({
   templateName,
   envelopeSender,
   subject,
@@ -50,7 +51,7 @@ const EmailBodyEditorTemplate = ({
   initialContent = "",
   initialAttachments = [], // Default to empty array
   onAttachmentsChange,
-}: EmailBodyEditorTemplateProps) => {
+}: EditEmailBodyEditorTemplateProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropzoneFileInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState(0);
@@ -165,7 +166,7 @@ const EmailBodyEditorTemplate = ({
         Swal.fire({
           text: result.message,
           icon: 'error',
-          duration: 3000, 
+          duration: 3000,
         });
         setAvailableTemplates(EMAIL_TEMPLATES_STATIC);
         setSelectedTemplate("Custom");
@@ -184,8 +185,8 @@ const EmailBodyEditorTemplate = ({
   // Effect untuk memanggil onAttachmentsChange setiap kali newAttachments atau removedExistingAttachmentIds berubah
   useEffect(() => {
     if (onAttachmentsChange) {
-      // Ensure to pass only the original File objects, not FileWithTempId
-      onAttachmentsChange(newAttachments, removedExistingAttachmentIds);
+      // Ensure to pass only the original File objects for newAttachments, not FileWithTempId
+      onAttachmentsChange(newAttachments.map(file => file as File), removedExistingAttachmentIds);
     }
   }, [newAttachments, removedExistingAttachmentIds, onAttachmentsChange]);
 
@@ -225,7 +226,7 @@ const EmailBodyEditorTemplate = ({
       Swal.fire({
         text: "Please select a valid EML file (.eml).",
         icon: 'error',
-        duration: 3000, 
+        duration: 3000,
       });
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -248,13 +249,13 @@ const EmailBodyEditorTemplate = ({
         Swal.fire({
           text: "EML file imported successfully!",
           icon: 'success',
-          duration: 2000, 
+          duration: 2000,
         });
       } else {
         Swal.fire({
           text: "Could not find HTML content in the EML file. Please ensure it contains an HTML part.",
           icon: 'warning',
-          duration: 4000, 
+          duration: 4000,
         });
       }
       if (fileInputRef.current) {
@@ -265,7 +266,7 @@ const EmailBodyEditorTemplate = ({
       Swal.fire({
         text: "Failed to read EML file. Please try again.",
         icon: 'error',
-        duration: 3000, 
+        duration: 3000,
       });
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
@@ -311,18 +312,26 @@ const EmailBodyEditorTemplate = ({
   // Callback for Dropzone to add new attachments
   const onDropAttachment = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
-      // Assign a temporary unique ID to each new file for stable keys
-      const filesWithTempId: FileWithTempId[] = acceptedFiles.map(file => 
-        Object.assign(file, { _tempId: Math.random().toString(36).substring(2, 11) })
-      );
-      setNewAttachments(prev => [...prev, ...filesWithTempId]);
+      // Limit to 1 file
+      const file = acceptedFiles[0]; 
+      const fileWithTempId: FileWithTempId = Object.assign(file, { _tempId: Math.random().toString(36).substring(2, 11) });
+
+      // If there are existing attachments, mark them for removal
+      if (existingAttachments.length > 0) {
+        const idsToMarkRemoved = existingAttachments.map(att => att.id);
+        setRemovedExistingAttachmentIds(prev => [...prev, ...idsToMarkRemoved]);
+        setExistingAttachments([]); // Clear existing attachments from display
+      }
+      
+      setNewAttachments([fileWithTempId]); // Replace any existing new attachments with the new one
+      
       Swal.fire({
-        text: `Berhasil menambahkan ${acceptedFiles.length} file sebagai attachment.`,
+        text: `Successfully added 1 file as attachment. It replaced any previous attachment.`, // Updated message
         icon: 'success',
-        duration: 2000, 
+        duration: 2000,
       });
     }
-  }, []);
+  }, [existingAttachments]); // Add existingAttachments to dependencies
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onDropAttachment,
@@ -334,6 +343,7 @@ const EmailBodyEditorTemplate = ({
     },
     noClick: true,
     noKeyboard: true,
+    maxFiles: 1, // Limit to 1 file
   });
 
   const handleDropzoneClick = () => {
@@ -343,18 +353,18 @@ const EmailBodyEditorTemplate = ({
   // Function to remove an attachment (either new or existing)
   const removeAttachment = useCallback((type: 'new' | 'existing', indexToRemove: number) => {
     if (type === 'new') {
-      setNewAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+      setNewAttachments([]); // Clear all new attachments (since max 1)
     } else { // type === 'existing'
       const attachmentToRemove = existingAttachments[indexToRemove];
       if (attachmentToRemove) {
         setRemovedExistingAttachmentIds(prev => [...prev, attachmentToRemove.id]);
-        setExistingAttachments(prev => prev.filter((_, index) => index !== indexToRemove));
+        setExistingAttachments([]); // Clear all existing attachments (since max 1)
       }
     }
     Swal.fire({
-      text: "Attachment berhasil dihapus.",
+      text: "Attachment successfully removed.",
       icon: 'info',
-      duration: 1500, 
+      duration: 1500,
     });
   }, [existingAttachments]);
 
@@ -491,13 +501,16 @@ const EmailBodyEditorTemplate = ({
                   {isDragActive ? "Lepaskan file di sini" : "Seret & Letakkan File Lampiran di sini"}
                 </h4>
                 <span className="text-center block w-full text-sm text-gray-700 dark:text-gray-400">
-                  Seret dan letakkan file PDF, DOCX, DOC, atau TXT Anda di sini untuk dilampirkan.
+                  Drag and drop your PDF, DOCX, DOC, or TXT file here to attach.
+                </span>
+                <span className="text-center block w-full text-sm text-gray-700 dark:text-gray-400">
+                  Only accept 1 file.
                 </span>
                 <span
-                  className="font-medium underline text-sm text-blue-600 mt-2 cursor-pointer"
+                  className="font-medium text-sm text-blue-600 mt-2 cursor-pointer"
                   onClick={handleDropzoneClick}
                 >
-                  Atau klik untuk memilih file
+                  Or click to select a file
                 </span>
               </div>
             </div>
@@ -523,15 +536,13 @@ const EmailBodyEditorTemplate = ({
                   ))}
                   {newAttachments.map((file, index) => (
                     <li key={`new-${file._tempId}`} className="flex items-center justify-between text-sm text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 p-2 rounded-md shadow-sm">
-                      <span>{file.name} (New) ({Math.round(file.size / 1024)} KB)</span>
+                      <span className="text-xs">{file.name} (New) ({Math.round(file.size / 1024)} KB)</span>
                       <button
                         onClick={() => removeAttachment('new', index)}
                         className="ml-2 text-red-500 hover:text-red-700 focus:outline-none"
                         title="Remove new attachment"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd" />
-                        </svg>
+                        <BsTrash className="mx-1"/>
                       </button>
                     </li>
                   ))}
@@ -608,4 +619,4 @@ const EmailBodyEditorTemplate = ({
   );
 };
 
-export default EmailBodyEditorTemplate;
+export default EditEmailBodyEditorTemplate;

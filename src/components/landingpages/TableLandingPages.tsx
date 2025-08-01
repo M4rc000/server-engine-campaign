@@ -220,19 +220,31 @@ export default function TableLandingPages({ reloadTrigger, onReload }: { reloadT
         accessorKey: 'actions',
         header: 'Action',
         cell: (row) => (
-          <div className="flex items-center justify-center space-x-2">
-            <Button size="xs" variant="success" onClick={() => onDuplicate(row.row.original)}>
-              <IoIosCopy />
-            </Button>
-            <Button size="xs" variant="info" onClick={() => onShowDetail(row.row.original)}>
-              <FaCircleInfo />
-            </Button>
-            <Button size="xs" variant="warning" onClick={() => onEdit(row.row.original)}>
-              <BiSolidEditAlt />
-            </Button>
-            <Button size="xs" variant="danger" onClick={() => onDelete(row.row.original)}>
-              <FaRegTrashAlt />
-            </Button>
+          <div className='pr-8 lg:px-3'>
+            <div className="grid grid-cols-2 gap-10 lg:gap-0 p-1">
+              <div>
+                <Button size="xs" variant="success" onClick={() => onDuplicate(row.row.original)}>
+                  <IoIosCopy />
+                </Button>
+              </div>
+              <div>
+                <Button size="xs" variant="info" onClick={() => onShowDetail(row.row.original)}>
+                  <FaCircleInfo />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-10 lg:gap-0 p-1">
+              <div>
+                <Button size="xs" variant="warning" onClick={() => onEdit(row.row.original)}>
+                  <BiSolidEditAlt />
+                </Button>
+              </div>
+              <div>
+                <Button size="xs" variant="danger" onClick={() => onDelete(row.row.original)}>
+                  <FaRegTrashAlt />
+                </Button>
+              </div>
+            </div>
           </div>
         ),
       },

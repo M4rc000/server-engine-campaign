@@ -35,7 +35,7 @@ export default function Lander() {
       })
       .catch(err => {
         console.error(err)
-        setError('Gagal memuat halaman phishing')
+        setError('Failed to load phishing page')
       })
       .finally(() => setLoading(false))
 

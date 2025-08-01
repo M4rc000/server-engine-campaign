@@ -12,9 +12,9 @@ import { IoIosBookmarks } from "react-icons/io";
 import { JSX } from "react";
 import { IoSettingsOutline } from "react-icons/io5";
 import { IoFootstepsOutline } from "react-icons/io5";
+import { DiEnvato } from "react-icons/di";
 
 const breadcrumbMap: Record<string, { menu: string; title: string; icon: JSX.Element }> = {
-  "/dashboard": { menu: "Admin", title: "Dashboard", icon: <GridIcon /> },
   "/campaigns": { menu: "Admin", title: "Campaigns", icon: <CalenderIcon /> },
   "/role-management": { menu: "Admin", title: "Role Management", icon: <FaUserCog size={20}/> },
   "/user-management": { menu: "Admin", title: "User Management", icon: <UserIcon /> },
@@ -27,6 +27,7 @@ const breadcrumbMap: Record<string, { menu: string; title: string; icon: JSX.Ele
   "/training-modules": { menu: "Phishing Simulation & Training Modules", title: "Training Modules", icon: <IoIosBookmarks /> },
   "/account-settings": { menu: "User", title: "Account Settings", icon: <IoSettingsOutline /> },
   "/logging-activity": { menu: "Logging & Monitoring", title: "Logging Activity", icon: <IoFootstepsOutline /> },
+  "/environment-check": { menu: "Logging & Monitoring", title: "Environment Check", icon: <DiEnvato /> },
 };
 
 const LayoutContent: React.FC = () => {

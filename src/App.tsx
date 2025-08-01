@@ -15,8 +15,6 @@
   const SignIn = lazy(() => import("./pages/AuthPages/SignIn"));
   const NotFound = lazy(() => import("./pages/OtherPage/NotFound"));
   const UserProfiles = lazy(() => import("./pages/UserProfiles"));
-  const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"));
-  const CampaignDetail = lazy(() => import("./pages/Dashboard/CampaignDetail"));  
   const Campaigns = lazy(() => import("./pages/Campaings/Campaigns"));
   const RoleManagement = lazy(() => import("./pages/RoleManagement/RoleManagement"));
   const UserManagement = lazy(() => import("./pages/UserManagement/UserManagement"));
@@ -28,8 +26,9 @@
   const PhishingWebsite = lazy(() => import("./pages/PhisingWebsite/PhisingWebsite"));
   const TrainingModules = lazy(() => import("./pages/TrainingModules/TrainingModules"));
   const LoggingActivity = lazy(() => import("./pages/LoggingActivity/LoggingActivity"));
-  const CommingSoon = lazy(() => import("./pages/OtherPage/CommingSoon"));
+  // const CommingSoon = lazy(() => import("./pages/OtherPage/CommingSoon"));
   const Unauthorized = lazy(() => import("./pages/OtherPage/Unauthorized"));
+  const EnvironmentCheck = lazy(() => import("./pages/EnvironmentCheck/EnvironmentCheck"));
 
   import { routeTitles } from "./components/utils/RouteTiles";
 
@@ -61,8 +60,6 @@
                 <Route element={<ProtectedRoute />}>
                   <Route element={<AppLayout />}>
                     <Route index path="/profile" element={<UserProfiles />} />
-                    <Route index path="/dashboard" element={<Dashboard />} />
-                    <Route path="/dashboard/campaign-detail/:campaignId" element={<CampaignDetail />} />
                     <Route path="/campaigns" element={<Campaigns />} />
                     <Route path="/role-management" element={<RoleManagement />} />
                     <Route path="/user-management" element={<UserManagement />} />
@@ -76,7 +73,7 @@
                     {/* <Route path="/subscription-billing" element={<CommingSoon />} /> */}
                     <Route path="/account-settings" element={<AccountSettings />} />
                     <Route path="/logging-activity" element={<LoggingActivity />} />
-                    <Route path="/environtment-check" element={<CommingSoon />} />
+                    <Route path="/environment-check" element={<EnvironmentCheck />} />
                   </Route>
                 </Route>
 

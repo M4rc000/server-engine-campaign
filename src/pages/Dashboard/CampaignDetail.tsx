@@ -15,26 +15,39 @@ import { IoIosSave } from 'react-icons/io';
 import { BiError } from 'react-icons/bi';
 import PageMeta from '../../components/common/PageMeta';
 import { formatUserDate } from '../../components/utils/DateFormatter';
-import * as XLSX from 'xlsx'; 
-import { saveAs } from 'file-saver'; 
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import { FaDownload } from 'react-icons/fa';
+import { FaWindows, FaChrome } from 'react-icons/fa';
 
+
+// --- DEFINISI INTERFACE BARU UNTUK TIMELINE PESERTA ---
+interface SubmittedDataDetails {
+  __original_url: string;
+  username: string;
+  password: string;
+  // Anda bisa menambahkan parameter lain di sini jika ada
+}
+
+interface ParticipantTimelineEvent {
+  event: 'Campaign Created' | 'Email Sent' | 'Email Opened' | 'Clicked Link' | 'Submitted Data' | 'Reported' | 'Error' | 'Pending';
+  date: string;
+  os?: string;
+  browser?: string;
+  details?: SubmittedDataDetails;
+}
 
 interface Participant {
   id: string;
   name: string;
   email: string;
   position: string;
-  status: 'sent' | 'Opened' | 'Clicked' | 'Submitted' | 'Reported' | 'Error' | 'Pending';
+  status: 'sent' | 'opened' | 'clicked' | 'submitted' | 'reported' | 'error' | 'pending';
   reported: number;
   browser: string;
   os: string;
-}
-
-interface CampaignTimelineEvent {
-  date: string;
-  description: string;
-  detail?: string;
+  // Tambahkan timeline events
+  timeline: ParticipantTimelineEvent[];
 }
 
 interface CampaignDetails {
@@ -59,7 +72,6 @@ interface CampaignDetails {
   email_submitted: number;
   total_participants: number;
   participants: Participant[];
-  timeline: CampaignTimelineEvent[];
   completed_date: Date;
 }
 
@@ -108,7 +120,7 @@ const ErrorAlert: React.FC<{ message: string; onRetry?: () => void }> = ({ messa
   </div>
 );
 
-// Enhanced Timeline Component
+
 const CampaignTimeline: React.FC<{ campaign: CampaignDetails }> = ({ campaign }) => {
   const timelineEvents = [
     {
@@ -127,7 +139,7 @@ const CampaignTimeline: React.FC<{ campaign: CampaignDetails }> = ({ campaign })
     },
     {
       title: "Current Status",
-      date: formatUserDate(campaign.completed_date),
+      date: campaign.completed_date ? formatUserDate(campaign.completed_date) : 'N/A',
       description: `Status: ${campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}`,
       icon: <MdCheckCircleOutline className="text-purple-600" />,
       color: "purple"
@@ -160,88 +172,152 @@ const CampaignTimeline: React.FC<{ campaign: CampaignDetails }> = ({ campaign })
   );
 };
 
-// Enhanced Participants Table
-const ParticipantsTable: React.FC<{ participants: Participant[] }> = ({ participants }) => (
-  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead className="bg-gray-50 dark:bg-gray-900/50">
-          <tr>
-            <th className="px-3 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              #
-            </th>
-            <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              Participant
-            </th>
-            <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              Email Address
-            </th>
-            <th className="px-3 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              Position
-            </th>
-            <th className="px-2 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              Status
-            </th>
-            <th className="px-3 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              Browser
-            </th>
-            <th className="px-3 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-              OS
-            </th>
-          </tr>
-        </thead>
-        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-          {participants.map((participant, index) => (
-            <tr key={participant.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150">
-              <td className="px-3 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {index + 1}
+const ParticipantTimelineDetails: React.FC<{ timeline: ParticipantTimelineEvent[] }> = ({ timeline }) => {
+  
+  const getIconForEvent = (event: string) => {
+    switch (event) {
+      case 'sent':
+        return <HiOutlineMail className="text-xl text-green-600" />;
+      case 'opened':
+        return <HiOutlineMailOpen className="text-xl text-yellow-600" />;
+      case 'clicked':
+        return <LuMousePointerClick className="text-xl text-blue-600" />;
+      case 'submitted':
+        return <IoIosSave className="text-xl text-teal-600" />;
+      case 'reported':
+        return <BiError className="text-xl text-red-600" />;
+      default:
+        return <FiAlertCircle className="text-xl text-gray-400" />;
+    }
+  };
+  
+  return (
+    <div className="bg-gray-50 dark:bg-gray-800 p-6 border-l-2 border-gray-200 dark:border-gray-700 ml-4 mb-4">
+      <h5 className="font-bold text-gray-900 dark:text-white mb-4">Participant Activity Timeline</h5>
+      <ul className="relative mx-3">
+        {timeline.map((event, index) => (
+          <li key={index} className="mb-6 ml-6">
+            <span className="absolute flex items-center justify-center w-8 h-8 rounded-full -left-4 ring-1 dark:ring-gray-400 ring-gray-700 bg-gray-100 dark:bg-gray-700">
+              {getIconForEvent(event.event)}
+            </span>
+            <div className="flex justify-between items-center">
+              <h3 className="flex items-center text-base font-semibold text-gray-900 dark:text-white">
+                {event.event}
+              </h3>
+              <time className="block text-sm font-normal leading-none text-gray-400 dark:text-gray-500">
+                {formatUserDate(event.date)}
+              </time>
+            </div>
+            
+            {(event.os || event.browser) && (
+              <div className="mt-2 text-sm text-gray-600 dark:text-gray-300">
+                {event.os && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <FaWindows className="text-blue-500" />
+                    <span>{event.os}</span>
+                  </div>
+                )}
+                {event.browser && (
+                  <div className="flex items-center gap-2 mt-1">
+                    <FaChrome className="text-green-500" />
+                    <span>{event.browser}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {event.details && (
+              <div className="mt-3 bg-white dark:bg-gray-900 rounded-lg shadow-inner p-4 border border-gray-200 dark:border-gray-700">
+                <h6 className="font-semibold text-sm text-gray-800 dark:text-gray-200 mb-2">Submitted Data</h6>
+                <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex justify-between">
+                    <span className="font-medium">Username:</span>
+                    <span>{event.details.username}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Password:</span>
+                    <span>{event.details.password}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="font-medium">Original URL:</span>
+                    <a href={event.details.__original_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate max-w-[200px]">{event.details.__original_url}</a>
                   </div>
                 </div>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {participant.name}
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                  {participant.email}
-                </div>
-              </td>
-              <td className="px-3 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {participant.position}
-                </div>
-              </td>
-              <td className="px-2 py-4 whitespace-nowrap">
-                <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${
-                  participant.status === 'sent' ? 'bg-green-300 text-green-700 dark:bg-green-900/100 dark:text-green-100' :
-                  'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-                }`}>
-                  {participant.status}
-                </span>
-              </td>
-              <td className="px-2 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {participant.browser}
-                </div>
-              </td>
-              <td className="px-3 py-4 whitespace-nowrap">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  {participant.os}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            )}
+          </li>
+        ))}
+      </ul>
     </div>
-  </div>
-);
+  );
+};
+
+
+const ParticipantsTable: React.FC<{ participants: Participant[] }> = ({ participants }) => {
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
+  
+  const handleRowClick = (id: string) => {
+    setExpandedRowId(expandedRowId === id ? null : id);
+  };
+  
+  const getStatusColor = (status: Participant['status']) => {
+    switch (status) {
+      case 'sent': return 'bg-green-300 text-green-700 dark:bg-green-900/100 dark:text-green-100';
+      case 'opened': return 'bg-yellow-300 text-yellow-700 dark:bg-yellow-900/100 dark:text-yellow-100';
+      case 'clicked': return 'bg-blue-300 text-blue-700 dark:bg-blue-900/100 dark:text-blue-100';
+      case 'submitted': return 'bg-cyan-300 text-cyan-700 dark:bg-cyan-900/100 dark:text-cyan-100';
+      case 'reported': return 'bg-red-300 text-red-700 dark:bg-red-900/100 dark:text-red-100';
+      case 'error': return 'bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-900/50">
+            <tr>
+              <th className="px-3 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">#</th>
+              <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Participant</th>
+              <th className="px-4 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Email Address</th>
+              <th className="px-3 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Position</th>
+              <th className="px-2 py-4 text-left text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Status</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {participants.map((participant, index) => (
+              <React.Fragment key={participant.id}>
+                <tr
+                  onClick={() => handleRowClick(participant.id)}
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150"
+                >
+                  <td className="px-3 py-4 whitespace-nowrap"><div className="text-sm font-semibold text-gray-900 dark:text-white">{index + 1}</div></td>
+                  <td className="px-4 py-4 whitespace-nowrap"><div className="text-sm font-semibold text-gray-900 dark:text-white">{participant.name}</div></td>
+                  <td className="px-4 py-4 whitespace-nowrap"><div className="text-sm text-gray-600 dark:text-gray-300 font-medium">{participant.email}</div></td>
+                  <td className="px-3 py-4 whitespace-nowrap"><div className="text-sm text-gray-600 dark:text-gray-300">{participant.position}</div></td>
+                  <td className="px-2 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(participant.status)}`}>
+                      {participant.status}
+                    </span>
+                  </td>
+                </tr>
+                {expandedRowId === participant.id && (
+                  <tr>
+                    <td colSpan={7}>
+                      <ParticipantTimelineDetails timeline={participant.timeline} />
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 
 const EnhancedMetricCard: React.FC<{
     title: string;

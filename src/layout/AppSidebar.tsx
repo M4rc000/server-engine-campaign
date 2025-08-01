@@ -1,10 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom"; 
-import { MdOutlineAttachEmail } from "react-icons/md";
-import { CgWebsite } from "react-icons/cg";
-import { IoIosBookmarks } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
-import { DiEnvato } from "react-icons/di";
 import { FaUserCog } from "react-icons/fa";
 import {
   CalenderIcon,
@@ -16,7 +12,6 @@ import {
   TableIcon,
   UserIcon,
 } from "../icons";
-import { IoFootstepsOutline } from "react-icons/io5";
 import { useSidebar } from "../context/SidebarContext";
 import SidebarWidget from "./SidebarWidget";
 import { User } from "lucide-react";
@@ -48,7 +43,6 @@ const allNavGroups: NavGroup[] = [ // Rename to allNavGroups
     title: "Admin",
     key: "main",
     items: [
-      { icon: <GridIcon />, name: "Dashboard", path: "/dashboard" },
       { icon: <GridIcon />, name: "Campaign Detail", path: "/campaign-detail/:campaignId" },
       { icon: <CalenderIcon />, name: "Campaigns", path: "/campaigns" },
       { icon: <FaUserCog size={5}/>, name: "Role Management", path: "/role-management" },
@@ -60,28 +54,11 @@ const allNavGroups: NavGroup[] = [ // Rename to allNavGroups
     ],
   },
   {
-    title: "Phishing & Simulation",
-    key: "phishing-simulation",
-    items: [
-      { icon: <MdOutlineAttachEmail />, name: "Phishing Emails", path: "/phishing-emails" },
-      { icon: <CgWebsite />, name: "Phishing Websites", path: "/phishing-websites" }, 
-      { name: "Training Modules", icon: <IoIosBookmarks />, path: "/training-modules" }, 
-    ],
-  },
-  {
     title: "User",
     key: "user",
     items: [
       { icon: <IoSettingsOutline />, name: "Account Settings", path: "/account-settings" },
       // { icon: <FaMoneyCheckAlt />, name: "Subcription & Billing", path: "/subscription-billing" },
-    ],
-  },
-  {
-    title: "Logging & Monitoring",
-    key: "logging-monitoring",
-    items: [
-      { icon: <IoFootstepsOutline />, name: "Logging Activity", path: "/logging-activity" },
-      { icon: <DiEnvato />, name: "Environtment Check", path: "/environtment-check" },
     ],
   },
 ];
